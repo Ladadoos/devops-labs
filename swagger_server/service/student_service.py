@@ -1,34 +1,37 @@
 import os
 import tempfile
 
-from tinydb import TinyDB, Query
-from tinydb.middlewares import CachingMiddleware
 from functools import reduce
+
+import pymongo
 
 from swagger_server.models import Student
 
-db_dir_path = tempfile.gettempdir()
-db_file_path = os.path.join(db_dir_path, "students.json")
-student_db = TinyDB(db_file_path)
+db_client = pymongo.MongoClient("mongodb://mongo:27017")
+db = db_client['devops']  # Create/retrieve database
+student_db = db['students']  # Create/retrieve collection
+
+student_id_counter = 1
 
 
 def add(student=None):
-    queries = []
-    query = Query()
-    queries.append(query.first_name == student.first_name)
-    queries.append(query.last_name == student.last_name)
-    query = reduce(lambda a, b: a & b, queries)
-    res = student_db.search(query)
+    global student_id_counter
+
+    res = student_db.find_one({'first_name': student.first_name,
+                               'last_name': student.last_name})
     if res:
         return 'already exists', 409
 
-    doc_id = student_db.insert(student.to_dict())
-    student.student_id = doc_id
+    student.student_id = student_id_counter
+    dic = student.to_dict()
+    dic['_id'] = student.student_id
+    student_db.insert_one(dic)
+    student_id_counter += 1
     return student.student_id
 
 
 def get_by_id(student_id=None, subject=None):
-    student = student_db.get(doc_id=int(student_id))
+    student = student_db.find_one({'_id': int(student_id)})
     if not student:
         return 'not found', 404
     student['student_id'] = student_id
@@ -36,8 +39,8 @@ def get_by_id(student_id=None, subject=None):
 
 
 def delete(student_id=None):
-    student = student_db.get(doc_id=int(student_id))
+    student = student_db.find_one({'_id': int(student_id)})
     if not student:
         return 'not found', 404
-    student_db.remove(doc_ids=[int(student_id)])
+    student_db.delete_one({'_id': int(student_id)})
     return student_id
