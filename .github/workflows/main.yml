@@ -1,7 +1,7 @@
 name: Builb Test and push
 on: [push]
 env:
-  IMAGE_NAME: service
+  IMAGE_NAME: student_service
   REPO_NAME: dionuva
   
 
