@@ -9,9 +9,9 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 servers:
-- url: https://virtserver.swaggerhub.com/Ladadoos/tutorial/1.0.0
-  description: SwaggerHub API Auto Mocking
 - url: https://virtserver.swaggerhub.com/tutorial/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: https://virtserver.swaggerhub.com/Ladadoos/tutorial/1.0.0
   description: SwaggerHub API Auto Mocking
 paths:
   /student/{student_id}:
@@ -44,7 +44,8 @@ paths:
       x-openapi-router-controller: swagger_server.controllers.default_controller
     delete:
       summary: deletes student
-      description: delete a single student
+      description: |
+        delete a single student
       operationId: delete_student
       parameters:
       - name: student_id

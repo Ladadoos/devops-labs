@@ -25,7 +25,7 @@ def add_student(body=None):  # noqa: E501
 def delete_student(student_id):  # noqa: E501
     """deletes student
 
-    delete a single student # noqa: E501
+    delete a single student  # noqa: E501
 
     :param student_id: the uid
     :type student_id: int
@@ -38,7 +38,7 @@ def delete_student(student_id):  # noqa: E501
 def get_student_by_id(student_id):  # noqa: E501
     """gets student
 
-    Returns a single student # noqa: E501
+    Returns a single student  # noqa: E501
 
     :param student_id: the uid
     :type student_id: int
