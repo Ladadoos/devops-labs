@@ -1,0 +1,81 @@
+---
+- hosts: cluster
+  gather_facts: False
+  become: yes
+  tasks:
+    - get_url:
+        url: https://gitlab-fnwi.uva.nl/skoulou1/devops-material/-/raw/main/ansible/kubernetes.repo
+        dest: /etc/yum.repos.d/kubernetes.repo
+
+    - name: Disable gpgcheck
+      ansible.builtin.lineinfile:
+        path: /etc/yum.repos.d/kubernetes.repo
+        regexp: ^repo_gpgcheck=1
+        line: repo_gpgcheck=0
+
+    - ansible.builtin.package:
+        name:
+          - docker
+        state: present
+
+    - ansible.builtin.systemd:
+        state: started
+        name: docker
+
+    - ansible.builtin.command: docker run hello-world
+      register: docker_output
+
+
+
+- hosts: master
+  tasks:
+
+    - uri:
+        url: https://api.ipify.org?format=json
+        method: Get
+      changed_when: false
+      register: public_ip
+      until: public_ip.status == 200
+      retries: 6
+      delay: 10
+
+    - debug:
+        msg: "docker swarm init --advertise-addr {{ public_ip.json.ip }} | grep 'docker swarm join --token'"
+
+    #- ansible.builtin.shell: "docker swarm leave --force"
+    #  become: yes
+
+    - ansible.builtin.shell: "docker swarm init --advertise-addr {{ public_ip.json.ip }} | grep 'docker swarm join --token'"
+      become: yes
+      register: join_cmd
+
+    - name: Add join cmd to dummy host
+      add_host:
+        name: "join_cmd_holder"
+        cmd: "{{ join_cmd.stdout }}"
+
+
+
+- hosts: worker
+  tasks:
+    - name: print join cmd
+      debug:
+        msg: "[Worker] {{ hostvars['join_cmd_holder']['cmd'] }}"
+
+    #- ansible.builtin.shell: "docker swarm leave --force"
+    #  become: yes
+
+    - ansible.builtin.shell: "{{ hostvars['join_cmd_holder']['cmd'] }}"
+      become: yes
+
+
+- hosts: master
+  tasks:
+    - name: get nodes
+      become: yes
+      command: docker node ls
+      register: nodes_out
+
+    - name: print nodes
+      debug:
+        var: nodes_out

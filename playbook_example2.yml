@@ -1,0 +1,18 @@
+---
+- hosts: web-server
+  become: true
+  tasks:
+    - ansible.builtin.package:
+        name: httpd
+        state: present
+
+    - ansible.builtin.service:
+        name: httpd
+        state: started
+
+- hosts: db
+  become: true
+  tasks:
+     - ansible.builtin.package:
+         name: mariadb
+         state: present

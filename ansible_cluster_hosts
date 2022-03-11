@@ -1,0 +1,14 @@
+[master]
+ec2-3-236-182-47.compute-1.amazonaws.com
+
+[worker]
+ec2-3-238-76-99.compute-1.amazonaws.com
+
+[cluster:children]
+master
+worker
+
+[cluster:vars]
+ansible_ssh_user=ec2-user
+ansible_ssh_private_key_file=/home/ec2-user/labuser.pem
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
